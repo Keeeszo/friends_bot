@@ -1,0 +1,239 @@
+{
+  "5018368382": {
+    "username": "RomeoAquino",
+    "accounts": {
+      "#VGGG0VY": {
+        "name": "Keeeszo",
+        "max_builders": 5,
+        "active_builds": [
+          {
+            "start_time": "2025-05-14T12:24:36.930893",
+            "end_time": "2025-05-16T03:24:36.930890",
+            "duration": "1d15h",
+            "description": "Luchadora real",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T12:24:45.583885",
+            "end_time": "2025-05-16T06:24:45.583883",
+            "duration": "1d18h",
+            "description": "Gran centinela",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T12:25:42.588893",
+            "end_time": "2025-05-18T15:25:42.588891",
+            "duration": "4d3h",
+            "description": "Torre Infernal",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T12:25:50.230478",
+            "end_time": "2025-05-18T15:25:50.230475",
+            "duration": "4d3h",
+            "description": "Torre Infernal",
+            "status": "active"
+          }
+        ],
+        "registered_at": "2025-05-14T12:20:09.280862",
+        "th_level": 13
+      },
+      "#G0P0P82CV": {
+        "name": "Keeeszillo",
+        "max_builders": 5,
+        "active_builds": [
+          {
+            "start_time": "2025-05-14T12:29:48.885264",
+            "end_time": "2025-05-15T04:10:48.885262",
+            "duration": "15h41m",
+            "description": "Rey b\u00e1rbaro",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T12:30:22.384378",
+            "end_time": "2025-05-15T04:23:22.384375",
+            "duration": "15h53m",
+            "description": "Forja",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T12:30:50.403523",
+            "end_time": "2025-05-15T05:27:50.403521",
+            "duration": "16h57m",
+            "description": "Torre Infernal",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T12:31:13.725405",
+            "end_time": "2025-05-15T09:58:13.725403",
+            "duration": "21h27m",
+            "description": "Forja",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T12:31:42.101194",
+            "end_time": "2025-05-15T10:55:42.101192",
+            "duration": "22h24m",
+            "description": "Reina Arquera",
+            "status": "active"
+          }
+        ],
+        "registered_at": "2025-05-14T12:13:58.511970",
+        "th_level": 12
+      },
+      "#2QVG0YR0C": {
+        "name": "Keeesziux",
+        "max_builders": 5,
+        "active_builds": [
+          {
+            "start_time": "2025-05-14T15:11:07.816404",
+            "end_time": "2025-05-14T18:07:07.816402",
+            "duration": "2h56m",
+            "description": "Gran Centinela",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T15:11:39.117819",
+            "end_time": "2025-05-14T18:45:39.117818",
+            "duration": "3h34m",
+            "description": "Rey B\u00e1rbaro",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T15:11:58.805451",
+            "end_time": "2025-05-16T06:11:58.805449",
+            "duration": "1d15h",
+            "description": "Ballesta",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T15:12:29.734383",
+            "end_time": "2025-05-17T01:12:29.734381",
+            "duration": "2d10h",
+            "description": "Ballesta",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T15:12:32.715830",
+            "end_time": "2025-05-17T01:12:32.715828",
+            "duration": "2d10h",
+            "description": "Ballesta",
+            "status": "active"
+          }
+        ],
+        "registered_at": "2025-05-14T12:14:46.312762",
+        "th_level": 11
+      },
+      "#GPJGL2QP8": {
+        "name": "Keeeszito",
+        "max_builders": 4,
+        "active_builds": [
+          {
+            "start_time": "2025-05-14T14:34:19.326887",
+            "end_time": "2025-05-14T17:29:19.326885",
+            "duration": "2h55m",
+            "description": "Caldero de hechizos oscuros",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T14:34:38.544304",
+            "end_time": "2025-05-14T20:30:38.544302",
+            "duration": "5h56m",
+            "description": "Herreria",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T14:35:03.109965",
+            "end_time": "2025-05-14T22:30:03.109962",
+            "duration": "7h55m",
+            "description": "Laboratorio",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T15:23:19.547132",
+            "end_time": "2025-05-14T16:23:19.547130",
+            "duration": "1h",
+            "description": "Torre Tesla",
+            "status": "active"
+          }
+        ],
+        "registered_at": "2025-05-14T12:14:58.077666",
+        "th_level": 8
+      },
+      "#2LQQQUU2V": {
+        "name": "Keeeszini",
+        "max_builders": 5,
+        "active_builds": [
+          {
+            "start_time": "2025-05-14T12:33:55.061847",
+            "end_time": "2025-05-14T23:52:55.061845",
+            "duration": "11h19m",
+            "description": "Torre Infernal",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T12:34:10.205497",
+            "end_time": "2025-05-15T09:53:10.205494",
+            "duration": "21h19m",
+            "description": "Ballesta",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T12:34:12.293117",
+            "end_time": "2025-05-15T09:53:12.293115",
+            "duration": "21h19m",
+            "description": "Ballesta",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T12:34:33.787167",
+            "end_time": "2025-05-15T10:16:33.787165",
+            "duration": "21h42m",
+            "description": "Rey b\u00e1rbaro",
+            "status": "active"
+          },
+          {
+            "start_time": "2025-05-14T12:34:45.467437",
+            "end_time": "2025-05-15T22:34:45.467434",
+            "duration": "1d10h",
+            "description": "Torre Infernal",
+            "status": "active"
+          }
+        ],
+        "registered_at": "2025-05-14T12:20:25.140982",
+        "th_level": 11
+      }
+    }
+  },
+  "1573161705": {
+    "username": "jAlejandrox",
+    "accounts": {
+      "#GLQLCVYQQ": {
+        "name": "xRokha",
+        "max_builders": 5,
+        "active_builds": [],
+        "registered_at": "2025-05-14T12:14:03.068163",
+        "th_level": 9
+      },
+      "#LQP08GYJ": {
+        "name": "xjokerrr",
+        "max_builders": 5,
+        "active_builds": [],
+        "registered_at": "2025-05-14T12:14:17.138573",
+        "th_level": 11
+      }
+    }
+  },
+  "2055705128": {
+    "username": "alfrzg",
+    "accounts": {
+      "#GUPUG900V": {
+        "name": "Affedo",
+        "max_builders": 2,
+        "active_builds": [],
+        "registered_at": "2025-05-14T15:14:34.088884",
+        "th_level": 4
+      }
+    }
+  }
+}

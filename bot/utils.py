@@ -1,0 +1,166 @@
+import logging
+from typing import Optional, Dict, Any
+import requests
+from telegram import Update, Bot
+from telegram.ext import ContextTypes
+from datetime import datetime, timedelta
+import json
+from pathlib import Path
+
+from config import COC_API_URL, COC_HEADERS, CONSTRUCTORES_FILE, TELEGRAM_TOKEN, ALLOWED_GROUP_ID, ALERTAS_TOPIC_ID
+
+logger = logging.getLogger(__name__)
+TELEGRAM_BOT = Bot(token=TELEGRAM_TOKEN)
+
+# API Helpers
+async def fetch_coc_data(endpoint: str) -> Optional[Dict[str, Any]]:
+    try:
+        response = requests.get(
+            f"{COC_API_URL}{endpoint}",
+            headers=COC_HEADERS,
+            timeout=15
+        )
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error API COC ({endpoint}): {e}")
+        return None
+
+# Builder Helpers
+def load_constructores() -> dict:
+    try:
+        if CONSTRUCTORES_FILE.exists():
+            with open(CONSTRUCTORES_FILE, 'r') as f:
+                return json.load(f)
+        return {}
+    except Exception as e:
+        logger.error(f"Error cargando constructores: {e}")
+        return {}
+
+def save_constructores(data: dict) -> bool:
+    try:
+        CONSTRUCTORES_FILE.parent.mkdir(exist_ok=True)
+        with open(CONSTRUCTORES_FILE, 'w') as f:
+            json.dump(data, f, indent=2)
+        return True
+    except Exception as e:
+        logger.error(f"Error guardando constructores: {e}")
+        return False
+
+# Format Helpers
+def format_time_left(end_time: str) -> str:
+    if not end_time:
+        return "tiempo desconocido"
+
+    end = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+    now = datetime.now(end.tzinfo)
+    delta = end - now
+
+    if delta.total_seconds() <= 0:
+        return "¡AHORA MISMO!"
+
+    hours, remainder = divmod(delta.total_seconds(), 3600)
+    minutes = remainder // 60
+    return f"{int(hours)}h {int(minutes)}m" if hours else f"{int(minutes)}m"
+
+def parse_duration(duration_str: str) -> timedelta:
+    days = hours = minutes = 0
+    remaining = duration_str.lower()
+
+    if 'd' in remaining:
+        d_idx = remaining.index('d')
+        days = int(remaining[:d_idx])
+        remaining = remaining[d_idx + 1:]
+
+    if 'h' in remaining:
+        h_idx = remaining.index('h')
+        hours = int(remaining[:h_idx])
+        remaining = remaining[h_idx + 1:]
+
+    if 'm' in remaining:
+        m_idx = remaining.index('m')
+        minutes = int(remaining[:m_idx])
+
+    return timedelta(days=days, hours=hours, minutes=minutes)
+
+# Telegram Helpers
+async def send_to_topic(text: str, update: Optional[Update] = None):
+    try:
+        if update.effective_chat.id != ALLOWED_GROUP_ID:
+            await update.message.reply_text("Usted no está autorizado para consumir información de Friends.")
+            return
+
+        await TELEGRAM_BOT.send_message(
+            chat_id=ALLOWED_GROUP_ID,
+            text=escape_markdown(text),
+            message_thread_id=ALERTAS_TOPIC_ID,
+            parse_mode="MarkdownV2"
+        )
+        return True
+    except Exception as e:
+        logger.error(f"Error enviando mensaje: {e}")
+        if update:
+            await update.message.reply_text("⚠️ Error al enviar al tópico")
+        return False
+
+async def send_to_topic_html(text: str, update: Optional[Update] = None):
+    """Envía mensaje al tópico designado"""
+    try:
+        chat_id = update.effective_chat.id if update else ALLOWED_GROUP_ID
+        await TELEGRAM_BOT.send_message(
+            chat_id=chat_id,
+            text=text,
+            message_thread_id=ALERTAS_TOPIC_ID,
+            parse_mode="HTML"
+        )
+        return True
+    except Exception as e:
+        logger.error(f"Error enviando mensaje: {e}")
+        if update:
+            await update.message.reply_text("⚠️ Error al enviar al tópico")
+        return False
+
+
+def escape_markdown(text: str) -> str:
+    escape_chars = '_*[]()~`>#+-=|{}.!'
+    result = []
+    i = 0
+    while i < len(text):
+        if text[i] == '\\' and i + 1 < len(text):
+            result.append(f'\\{text[i + 1]}')
+            i += 2
+        elif text[i] in escape_chars:
+            result.append(f'\\{text[i]}')
+            i += 1
+        else:
+            result.append(text[i])
+            i += 1
+    return ''.join(result)
+
+async def send_progress(update: Update, context: ContextTypes.DEFAULT_TYPE, message: str = ""):
+    """Envía/actualiza un mensaje de progreso animado"""
+    try:
+        if not hasattr(context, 'progress_message'):
+            context.progress_message = await update.message.reply_text(f"🔄 {message} ▰▱▱▱▱ 0%")
+        else:
+            await context.progress_message.edit_text(f"🔄 {message} ▰▱▱▱▱ 0%")
+    except Exception as e:
+        logger.error(f"Error en progreso: {e}")
+async def update_progress(update: Update, context: ContextTypes.DEFAULT_TYPE, percentage: int, message: str = ""):
+    """Actualiza la barra de progreso"""
+    if not hasattr(context, 'progress_message'):
+        return
+
+    bars = "▰" * (percentage // 20) + "▱" * (5 - percentage // 20)
+    try:
+        await context.progress_message.edit_text(f"🔄 {message} {bars} {percentage}%")
+    except Exception as e:
+        logger.error(f"Error actualizando progreso: {e}")
+async def delete_progress(context: ContextTypes.DEFAULT_TYPE):
+    """Elimina el mensaje de progreso"""
+    if hasattr(context, 'progress_message'):
+        try:
+            await context.progress_message.delete()
+        except:
+            pass
+        del context.progress_message
