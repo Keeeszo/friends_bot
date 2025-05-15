@@ -1,4 +1,6 @@
 import logging
+from asyncio import timeout
+from http.client import responses
 from typing import Optional, Dict, Any
 import requests
 from telegram import Update, Bot
@@ -13,6 +15,16 @@ logger = logging.getLogger(__name__)
 TELEGRAM_BOT = Bot(token=TELEGRAM_TOKEN)
 
 # API Helpers
+
+async def fetch_data(url:str ):
+    try:
+        logger.info(url)
+        response = requests.get(url)
+        return response
+    except Exception as e:
+        logger.error(f"Error consulta http: {e}")
+        return None
+
 async def fetch_coc_data(endpoint: str) -> Optional[Dict[str, Any]]:
     try:
         response = requests.get(
