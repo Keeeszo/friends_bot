@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes
 from bot.utils import fetch_coc_data, send_to_topic, format_time_left
 from config import CLAN_TAG
 
+
 def calculate_attack_score(attack, attacker_th, defender_th, attacker_pos, defender_pos):
     star_points = attack['stars'] * 100
     th_diff = defender_th - attacker_th
@@ -12,6 +13,7 @@ def calculate_attack_score(attack, attacker_th, defender_th, attacker_pos, defen
     duration_penalty = (attack['duration'] / 180) * 20
     score = (star_points * th_modifier * position_modifier) - duration_penalty
     return max(10, score)
+
 
 def get_missing_attackers(clan_members):
     missing = []
@@ -26,6 +28,7 @@ def get_missing_attackers(clan_members):
                 'remaining_attacks': remaining
             })
     return sorted(missing, key=lambda x: x['map_position'])
+
 
 async def guerra(update: Update, context: ContextTypes.DEFAULT_TYPE):
     war_data = await fetch_coc_data(f"/clans/{CLAN_TAG}/currentwar")
@@ -83,12 +86,14 @@ async def guerra(update: Update, context: ContextTypes.DEFAULT_TYPE):
     top_defenses = sorted(defense_scores, key=lambda x: -x['score'])[:3]
     missing_attackers = get_missing_attackers(clan.get('members', []))
 
+    estado = 'Preparación' if war_data[
+                                  'state'] == 'preparation' else f'En curso (Finaliza en {format_time_left(war_data.get("endTime"))})'
     message = [
         f"⚔️ *GUERRA ACTUAL* ⚔️",
         f"▸ {clan['name']} (Nvl.{clan['clanLevel']}) vs {opponent['name']} (Nvl.{opponent['clanLevel']})",
         f"▸ Ataques: {clan['attacks']}/{team_size * 2} | {clan['stars']}★ vs {opponent['stars']}★",
         f"▸ Destrucción: {clan['destructionPercentage']:.1f}% vs {opponent['destructionPercentage']:.1f}%",
-        f"⏳ Estado: {'Preparación' if war_data['state'] == 'preparation' else f'En curso (Finaliza en {format_time_left(war_data.get('endTime'))})'}",
+        f"⏳ Estado: {estado}",
     ]
 
     if top_attacks:
