@@ -11,7 +11,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def main():
+def main():
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
     register_handlers(application)
@@ -26,7 +26,7 @@ async def main():
     else:
         logger.warning("JobQueue no disponible. Notificaciones desactivadas")
 
-    await application.bot.delete_webhook(drop_pending_updates=True)
+    application.bot.delete_webhook(drop_pending_updates=True)
     application.run_polling()
 
 
