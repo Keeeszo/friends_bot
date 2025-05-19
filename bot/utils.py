@@ -1,22 +1,20 @@
 import logging
-from asyncio import timeout
-from http.client import responses
+from bson import ObjectId
 from typing import Optional, Dict, Any
 import requests
 from telegram import Update, Bot
 from telegram.ext import ContextTypes
 from datetime import datetime, timedelta
-import json
-from pathlib import Path
+from database import get_collection
 
-from config import COC_API_URL, COC_HEADERS, CONSTRUCTORES_FILE, TELEGRAM_TOKEN, ALLOWED_GROUP_ID, ALERTAS_TOPIC_ID
+from config import COC_API_URL, COC_HEADERS, TELEGRAM_TOKEN, ALLOWED_GROUP_ID, ALERTAS_TOPIC_ID, MONGO_DB_BUILDERS_COLLECTION
 
 logger = logging.getLogger(__name__)
 TELEGRAM_BOT = Bot(token=TELEGRAM_TOKEN)
 
 # API Helpers
 
-async def fetch_data(url:str ):
+async def fetch_data(url: str):
     try:
         logger.info(url)
         response = requests.get(url)
@@ -24,6 +22,7 @@ async def fetch_data(url:str ):
     except Exception as e:
         logger.error(f"Error consulta http: {e}")
         return None
+
 
 async def fetch_coc_data(endpoint: str) -> Optional[Dict[str, Any]]:
     try:
@@ -38,26 +37,37 @@ async def fetch_coc_data(endpoint: str) -> Optional[Dict[str, Any]]:
         logger.error(f"Error API COC ({endpoint}): {e}")
         return None
 
+
 # Builder Helpers
 def load_constructores() -> dict:
     try:
-        if CONSTRUCTORES_FILE.exists():
-            with open(CONSTRUCTORES_FILE, 'r') as f:
-                return json.load(f)
-        return {}
+        collection = get_collection(MONGO_DB_BUILDERS_COLLECTION)
+        result = {}
+        for doc in collection.find():
+            result[str(doc["_id"])] = doc["data"]
+        return result
     except Exception as e:
         logger.error(f"Error cargando constructores: {e}")
         return {}
 
+
 def save_constructores(data: dict) -> bool:
     try:
-        CONSTRUCTORES_FILE.parent.mkdir(exist_ok=True)
-        with open(CONSTRUCTORES_FILE, 'w') as f:
-            json.dump(data, f, indent=2)
+        collection = get_collection(MONGO_DB_BUILDERS_COLLECTION)
+        # Eliminamos todos los documentos existentes (simulamos el overwrite del JSON)
+        collection.delete_many({})
+
+        # Insertamos los nuevos datos
+        for user_id, user_data in data.items():
+            collection.insert_one({
+                "_id": ObjectId(user_id) if len(user_id) == 24 else user_id,
+                "data": user_data
+            })
         return True
     except Exception as e:
         logger.error(f"Error guardando constructores: {e}")
         return False
+
 
 # Format Helpers
 def format_time_left(end_time: str) -> str:
@@ -74,6 +84,7 @@ def format_time_left(end_time: str) -> str:
     hours, remainder = divmod(delta.total_seconds(), 3600)
     minutes = remainder // 60
     return f"{int(hours)}h {int(minutes)}m" if hours else f"{int(minutes)}m"
+
 
 def parse_duration(duration_str: str) -> timedelta:
     days = hours = minutes = 0
@@ -95,6 +106,7 @@ def parse_duration(duration_str: str) -> timedelta:
 
     return timedelta(days=days, hours=hours, minutes=minutes)
 
+
 # Telegram Helpers
 async def send_to_topic(text: str, update: Optional[Update] = None):
     try:
@@ -114,6 +126,7 @@ async def send_to_topic(text: str, update: Optional[Update] = None):
         if update:
             await update.message.reply_text("⚠️ Error al enviar al tópico")
         return False
+
 
 async def send_to_topic_html(text: str, update: Optional[Update] = None):
     """Envía mensaje al tópico designado"""
@@ -149,6 +162,7 @@ def escape_markdown(text: str) -> str:
             i += 1
     return ''.join(result)
 
+
 async def send_progress(update: Update, context: ContextTypes.DEFAULT_TYPE, message: str = ""):
     """Envía/actualiza un mensaje de progreso animado"""
     try:
@@ -158,6 +172,8 @@ async def send_progress(update: Update, context: ContextTypes.DEFAULT_TYPE, mess
             await context.progress_message.edit_text(f"🔄 {message} ▰▱▱▱▱ 0%")
     except Exception as e:
         logger.error(f"Error en progreso: {e}")
+
+
 async def update_progress(update: Update, context: ContextTypes.DEFAULT_TYPE, percentage: int, message: str = ""):
     """Actualiza la barra de progreso"""
     if not hasattr(context, 'progress_message'):
@@ -168,6 +184,8 @@ async def update_progress(update: Update, context: ContextTypes.DEFAULT_TYPE, pe
         await context.progress_message.edit_text(f"🔄 {message} {bars} {percentage}%")
     except Exception as e:
         logger.error(f"Error actualizando progreso: {e}")
+
+
 async def delete_progress(context: ContextTypes.DEFAULT_TYPE):
     """Elimina el mensaje de progreso"""
     if hasattr(context, 'progress_message'):

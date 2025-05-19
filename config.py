@@ -18,4 +18,7 @@ CLAN_TAG = os.getenv("CLAN_TAG").replace("#", "%23")
 # Rutas de archivos
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
-CONSTRUCTORES_FILE = DATA_DIR / "constructores.json"
+
+MONGO_DB_URI = os.getenv("MONGO_DB_URI")
+MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
+MONGO_DB_BUILDERS_COLLECTION = os.getenv("MONGO_DB_BUILDERS_COLLECTION")

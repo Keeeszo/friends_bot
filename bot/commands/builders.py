@@ -1,19 +1,25 @@
 from datetime import datetime, timedelta
 from telegram import Update
 from telegram.ext import ContextTypes
-from typing import Optional, Tuple
+import logging
+
+from data.dao.builders_dao import BuildersDAO
+
+logger = logging.getLogger(__name__)
 
 from bot.utils import (
-    load_constructores,
-    save_constructores,
     parse_duration,
     format_time_left,
-    send_to_topic,
     fetch_coc_data
 )
 from config import CLAN_TAG
 
+# Instancia global del DAO
+builders_dao = BuildersDAO()
+
+
 async def constructores_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Manejador principal para comandos de constructores"""
     if not context.args:
         await update.message.reply_text(
             "🔨 *Gestión de Constructores* 🔨\n\n"
@@ -38,8 +44,11 @@ async def constructores_handler(update: Update, context: ContextTypes.DEFAULT_TY
     else:
         await update.message.reply_text("Subcomando no reconocido")
 
+
 async def constructores_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Añade una nueva cuenta de constructor"""
     try:
+        # Validación de parámetros
         if len(context.args) < 3:
             await update.message.reply_text(
                 "Formato: /constructores add <tag_jugador/nombre> <cantidad>\n"
@@ -54,28 +63,26 @@ async def constructores_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("La cantidad debe ser un número entero")
             return
 
-        if cantidad < 1 or cantidad > 5:
+        if cantidad < 1 or cantidad > 6:
             await update.message.reply_text("La cantidad debe ser entre 1 y 5")
             return
 
+        # Verificar si el jugador ya está registrado
+        is_registered, owner = await builders_dao.is_player_registered(player_tag)
+        if is_registered:
+            await update.message.reply_text(
+                f"❌ Este jugador ya está registrado por {owner}\n"
+                f"Tag: {player_tag}"
+            )
+            return
+
+        # Obtener datos del jugador desde la API de Clash of Clans
         clan_members = await fetch_coc_data(f"/clans/{CLAN_TAG}/members")
         if not clan_members:
             await update.message.reply_text("❌ Error obteniendo lista del clan")
             return
 
-        user_id = str(update.effective_user.id)
-        data = load_constructores()
-
-        for uid, user_data in data.items():
-            if player_tag in user_data.get("accounts", {}):
-                if uid != user_id:
-                    owner = user_data.get("username", "otro usuario")
-                    await update.message.reply_text(
-                        f"❌ Este jugador ya está registrado por {owner}\n"
-                        f"Tag: {player_tag}"
-                    )
-                    return
-
+        # Buscar al jugador en los miembros del clan
         account_tag, account_data = None, None
         for member in clan_members.get('items', []):
             if (member["tag"] == player_tag or
@@ -90,33 +97,33 @@ async def constructores_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        if user_id not in data:
-            data[user_id] = {
-                "username": update.effective_user.username or update.effective_user.full_name,
-                "accounts": {}
-            }
-
-        data[user_id]["accounts"][account_tag] = {
-            "name": account_data["name"],
-            "max_builders": cantidad,
-            "active_builds": [],
-            "registered_at": datetime.now().isoformat(),
-            "th_level": account_data["townHallLevel"]
-        }
-
-        save_constructores(data)
-
-        await update.message.reply_text(
-            f"✅ Se han asignado {cantidad} constructores al jugador:\n"
-            f"Nombre: {account_data['name']} [ {account_tag} ]\n"
-            f"Usuario TG: {update.effective_user.username or update.effective_user.full_name}"
+        # Registrar la nueva cuenta usando el DAO
+        success = await builders_dao.add_builder_account(
+            user_id=str(update.effective_user.id),
+            username=update.effective_user.username or update.effective_user.full_name,
+            player_tag=account_tag,
+            player_data=account_data,
+            builder_count=cantidad
         )
 
+        if success:
+            await update.message.reply_text(
+                f"✅ Se han asignado {cantidad} constructores al jugador:\n"
+                f"Nombre: {account_data['name']} [ {account_tag} ]\n"
+                f"Usuario TG: {update.effective_user.username or update.effective_user.full_name}"
+            )
+        else:
+            await update.message.reply_text("❌ Error al registrar los constructores")
+
     except Exception as e:
+        logger.error(f"Error en constructores_add: {e}")
         await update.message.reply_text("⚠️ Error al procesar el comando")
 
+
 async def constructores_build(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Registra una nueva construcción"""
     try:
+        # Validación de parámetros
         if len(context.args) < 3:
             await update.message.reply_text(
                 "🔨 *Uso correcto:*\n"
@@ -130,6 +137,7 @@ async def constructores_build(update: Update, context: ContextTypes.DEFAULT_TYPE
         duration_str = context.args[2]
         description = " ".join(context.args[3:]) if len(context.args) > 3 else "Construcción"
 
+        # Parsear duración
         try:
             duration = parse_duration(duration_str)
             if duration.total_seconds() < 1:
@@ -143,9 +151,14 @@ async def constructores_build(update: Update, context: ContextTypes.DEFAULT_TYPE
             return
 
         user_id = str(update.effective_user.id)
-        data = load_constructores()
-        user_data = data.get(user_id, {})
 
+        # Obtener datos del usuario
+        user_data = await builders_dao.get_user_builders(user_id)
+        if not user_data:
+            await update.message.reply_text("No tienes constructores registrados")
+            return
+
+        # Buscar la cuenta específica
         account_tag, account_data = None, None
         identifier_lower = identifier.lower().strip()
 
@@ -157,6 +170,7 @@ async def constructores_build(update: Update, context: ContextTypes.DEFAULT_TYPE
                 break
 
         if not account_tag:
+            # Construir lista de cuentas disponibles
             accounts_list = []
             for tag, acc in user_data.get("accounts", {}).items():
                 acc_name = acc.get("name", "Sin nombre")
@@ -174,6 +188,7 @@ async def constructores_build(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
             return
 
+        # Verificar límite de constructores
         active_builds = account_data["active_builds"]
         if len(active_builds) >= account_data["max_builders"]:
             await update.message.reply_text(
@@ -184,6 +199,7 @@ async def constructores_build(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
             return
 
+        # Crear la nueva tarea de construcción
         end_time = datetime.now() + duration
         new_build = {
             "start_time": datetime.now().isoformat(),
@@ -192,38 +208,52 @@ async def constructores_build(update: Update, context: ContextTypes.DEFAULT_TYPE
             "description": description[:100],
             "status": "active"
         }
-        active_builds.append(new_build)
-        save_constructores(data)
 
-        time_left = format_time_left(end_time.isoformat())
-        builder_count = f"{len(active_builds)}/{account_data['max_builders']}"
-
-        await update.message.reply_text(
-            f"🏗️ *Nueva construcción registrada*\n\n"
-            f"• 👷 Constructor: {account_data['name']} (TH{account_data.get('th_level', '?')})\n"
-            f"• ⏱️ Duración: {duration_str}\n"
-            f"• 📝 Descripción: {description}\n"
-            f"• 🔨 Constructores: {builder_count}",
-            parse_mode="Markdown"
+        # Registrar la construcción usando el DAO
+        success = await builders_dao.add_builder_task(
+            user_id=user_id,
+            player_tag=account_tag,
+            task_data=new_build
         )
 
+        if success:
+            time_left = format_time_left(end_time.isoformat())
+            builder_count = f"{len(active_builds) + 1}/{account_data['max_builders']}"
+
+            await update.message.reply_text(
+                f"🏗️ *Nueva construcción registrada*\n\n"
+                f"• 👷 Constructor: {account_data['name']} (TH{account_data.get('th_level', '?')})\n"
+                f"• ⏱️ Duración: {duration_str}\n"
+                f"• 📝 Descripción: {description}\n"
+                f"• 🔨 Constructores: {builder_count}",
+                parse_mode="Markdown"
+            )
+        else:
+            await update.message.reply_text("⚠️ Error al registrar la construcción")
+
     except Exception as e:
+        logger.error(f"Error en constructores_build: {e}")
         await update.message.reply_text("⚠️ Error al procesar el comando")
 
+
 async def constructores_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Lista los constructores y construcciones activas"""
     try:
         user_id = str(update.effective_user.id)
-        data = load_constructores()
 
-        if not data.get(user_id, {}).get("accounts"):
+        # Obtener datos del usuario
+        user_data = await builders_dao.get_user_builders(user_id)
+        if not user_data or not user_data.get("accounts"):
             await update.message.reply_text("No tienes constructores registrados")
             return
 
+        # Filtrar por nombre si se especificó
         filter_name = context.args[1] if len(context.args) > 1 else None
         message = ["🏗️ *Tus constructores registrados* 🏗️"]
         has_active_builds = False
 
-        for tag, account in data[user_id]["accounts"].items():
+        # Construir el mensaje con todas las cuentas y construcciones
+        for tag, account in user_data["accounts"].items():
             if filter_name and filter_name != account["name"]:
                 continue
 
@@ -240,6 +270,7 @@ async def constructores_list(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     f"   🕒 Finaliza en {time_left}"
                 )
 
+        # Manejar casos especiales
         if len(message) == 1:
             if filter_name:
                 await update.message.reply_text(
@@ -253,10 +284,14 @@ async def constructores_list(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text('\n'.join(message), parse_mode="Markdown")
 
     except Exception as e:
+        logger.error(f"Error en constructores_list: {e}")
         await update.message.reply_text("⚠️ Error al listar constructores")
 
+
 async def constructores_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Cancela una construcción activa"""
     try:
+        # Validación de parámetros
         if len(context.args) < 3:
             await update.message.reply_text(
                 "🔨 *Uso correcto:* `/constructores cancel <nombre_cuenta> <id_constructor>`\n"
@@ -270,12 +305,20 @@ async def constructores_cancel(update: Update, context: ContextTypes.DEFAULT_TYP
         build_id_str = context.args[2]
 
         user_id = str(update.effective_user.id)
-        data = load_constructores()
 
+        # Obtener datos del usuario
+        user_data = await builders_dao.get_user_builders(user_id)
+        if not user_data:
+            await update.message.reply_text("No tienes constructores registrados")
+            return
+
+        # Buscar la cuenta específica
         target_account = None
-        for tag, account in data.get(user_id, {}).get("accounts", {}).items():
+        target_tag = None
+        for tag, account in user_data.get("accounts", {}).items():
             if account["name"].lower() == account_name.lower():
                 target_account = account
+                target_tag = tag
                 break
 
         if not target_account:
@@ -286,6 +329,7 @@ async def constructores_cancel(update: Update, context: ContextTypes.DEFAULT_TYP
             )
             return
 
+        # Validar ID de construcción
         try:
             build_id = int(build_id_str) - 1
             if build_id < 0 or build_id >= len(target_account["active_builds"]):
@@ -298,18 +342,26 @@ async def constructores_cancel(update: Update, context: ContextTypes.DEFAULT_TYP
             )
             return
 
-        removed_build = target_account["active_builds"].pop(build_id)
-        save_constructores(data)
-
-        await update.message.reply_text(
-            f"🗑️ *Construcción cancelada exitosamente*\n\n"
-            f"• 🔧 Cuenta: {target_account['name']}\n"
-            f"• 📝 Descripción: {removed_build['description']}\n\n"
-            f"🏗️ Constructores libres: {int(target_account['max_builders']) - len(target_account['active_builds'])}",
-            parse_mode="Markdown"
+        # Cancelar la construcción usando el DAO
+        success = await builders_dao.cancel_builder_task(
+            user_id=user_id,
+            player_tag=target_tag,
+            task_index=build_id
         )
 
+        if success:
+            await update.message.reply_text(
+                f"🗑️ *Construcción cancelada exitosamente*\n\n"
+                f"• 🔧 Cuenta: {target_account['name']}\n"
+                f"• 📝 Descripción: {target_account['active_builds'][build_id]['description']}\n\n"
+                f"🏗️ Constructores libres: {int(target_account['max_builders']) - len(target_account['active_builds']) + 1}",
+                parse_mode="Markdown"
+            )
+        else:
+            await update.message.reply_text("⚠️ Error al cancelar la construcción")
+
     except Exception as e:
+        logger.error(f"Error en constructores_cancel: {e}")
         await update.message.reply_text(
             "⚠️ Error al cancelar la construcción. Verifica:\n"
             "1. Que el nombre de la cuenta sea correcto\n"

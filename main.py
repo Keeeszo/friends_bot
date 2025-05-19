@@ -5,6 +5,7 @@ from bot.jobs import check_builders_notifications
 from config import TELEGRAM_TOKEN
 from flask import Flask
 import threading
+from database import MongoDB
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -26,6 +27,9 @@ def run_flask():
 
 
 def main():
+
+    mongo = MongoDB()
+
     flask_thread = threading.Thread(target=run_flask)
     flask_thread.start()
 
@@ -42,7 +46,10 @@ def main():
         logger.warning("JobQueue no disponible. Notificaciones desactivadas")
 
     application.bot.delete_webhook(drop_pending_updates=True)
-    application.run_polling()
+    try:
+        application.run_polling()
+    finally:
+        mongo.close()
 
 
 if __name__ == "__main__":
