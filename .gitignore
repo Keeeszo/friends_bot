@@ -1,5 +1,43 @@
-/bot/__pycache__
-/bot/commands/__pycache__
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Entornos virtuales
+venv/
+env/
+ENV/
 .env
-/__pycache__
-/.idea
+
+# IDEs y editores
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs y bases de datos
+*.log
+*.sqlite3
+*.db
+
+# Archivos de configuración local
+config.local.py
+settings.local.py
