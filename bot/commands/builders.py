@@ -21,11 +21,11 @@ def get_main_menu_keyboard():
     """Retorna el teclado principal de constructores"""
     keyboard = [
         [
-            InlineKeyboardButton("➕ Añadir Constructor", callback_data="builders_add"),
+            InlineKeyboardButton("➕ Añadir Cuenta", callback_data="builders_add"),
             InlineKeyboardButton("🏗️ Nueva Construcción", callback_data="builders_build")
         ],
         [
-            InlineKeyboardButton("📋 Listar Constructores", callback_data="builders_list"),
+            InlineKeyboardButton("📋 Listar Cuentas agregadas", callback_data="builders_list"),
             InlineKeyboardButton("❌ Cancelar Construcción", callback_data="builders_cancel")
         ],
         [
