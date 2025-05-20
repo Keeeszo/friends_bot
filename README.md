@@ -59,44 +59,24 @@ python main.py
 
 ### Comandos Disponibles
 
+- `/comandos` - Muestra la lista de comandos disponibles
+- `/info` - Muestra información básica del clan
+- `/guerra` - Estado detallado de la guerra actual
+- `/capital` - Progreso del fin de semana de ataque a la capital
+- `/liga` - Información de la liga de clanes actual
+- `/miembros` - Lista de miembros + Top 5 donadores del clan
+- `/constructores` - Gestión de múltiples constructores para tu cuenta de Telegram
+
 #### 🏗️ Gestión de Constructores
-- `/constructores` - Abre el menú principal de gestión
-  - ➕ Añadir Cuenta - Registra una nueva cuenta de constructor
-  - 🏗️ Nueva Construcción - Registra una nueva construcción
-  - 📋 Listar Cuentas - Muestra las cuentas y construcciones activas
-  - ❌ Cancelar Construcción - Cancela una construcción en curso
-
-#### ⚔️ Gestión de Guerras
-- `/guerra` - Muestra información sobre la guerra actual del clan
-  - 📊 Estadísticas de la guerra
-  - 👥 Lista de participantes
-  - ⏱️ Tiempo restante
-  - 🎯 Estado de los ataques
-
-#### 🏆 Ligas
-- `/liga` - Muestra información sobre la liga actual
-  - 📈 Posición en la liga
-  - 🏅 Puntos y recompensas
-  - 👥 Participantes destacados
-  - 📊 Estadísticas de la temporada
-
-#### 🏰 Clan
-- `/clan` - Muestra información general del clan
-  - 📊 Estadísticas del clan
-  - 👥 Miembros destacados
-  - 🏆 Logros y trofeos
-  - 📈 Nivel y requisitos
-
-#### 🏙️ Capital
-- `/capital` - Muestra información del capital del clan
-  - 🏰 Nivel del capital
-  - 💰 Recursos disponibles
-  - 🏗️ Construcciones en progreso
-  - 📊 Estadísticas de ataques
+El comando `/constructores` permite:
+- ➕ Añadir Cuenta - Registra una nueva cuenta de constructor
+- 🏗️ Nueva Construcción - Registra una nueva construcción
+- 📋 Listar Cuentas - Muestra las cuentas y construcciones activas
+- ❌ Cancelar Construcción - Cancela una construcción en curso
 
 ## 📝 Notas
 
-- El bot solo funciona en chats directos + envío de mensajes directos
+- El bot solo funciona en chats directos + envío de mensajes a un grupo en específico
 - Se requiere que el jugador sea miembro del clan para registrarse
 - Las construcciones se pueden cancelar en cualquier momento
 - El tiempo de construcción se puede especificar en formato: 3h30m, 2d5h, 45m
