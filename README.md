@@ -11,9 +11,9 @@ Bot de Telegram para gestionar constructores y construcciones en Clash of Clans.
 - 📊 Listado de constructores activos
 - ❌ Cancelación de construcciones
 - ⚔️ Gestión de guerras
-- 🏆 Información de ligas
+- 🏆 Información de liga actual
 - 🏰 Datos del clan
-- 🏙️ Información del capital
+- 🏙️ Información de la capital
 
 ## 📋 Requisitos
 
@@ -67,14 +67,14 @@ python main.py
   - ❌ Cancelar Construcción - Cancela una construcción en curso
 
 #### ⚔️ Gestión de Guerras
-- `/war` - Muestra información sobre la guerra actual del clan
+- `/guerra` - Muestra información sobre la guerra actual del clan
   - 📊 Estadísticas de la guerra
   - 👥 Lista de participantes
   - ⏱️ Tiempo restante
   - 🎯 Estado de los ataques
 
 #### 🏆 Ligas
-- `/league` - Muestra información sobre la liga actual
+- `/liga` - Muestra información sobre la liga actual
   - 📈 Posición en la liga
   - 🏅 Puntos y recompensas
   - 👥 Participantes destacados
@@ -96,18 +96,10 @@ python main.py
 
 ## 📝 Notas
 
-- El bot solo funciona en chats directos con el bot
+- El bot solo funciona en chats directos + envío de mensajes directos
 - Se requiere que el jugador sea miembro del clan para registrarse
 - Las construcciones se pueden cancelar en cualquier momento
 - El tiempo de construcción se puede especificar en formato: 3h30m, 2d5h, 45m
-
-## 🤝 Contribuir
-
-1. Fork el proyecto
-2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir un Pull Request
 
 ## 📄 Licencia
 
