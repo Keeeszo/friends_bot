@@ -3,11 +3,13 @@ from telegram.ext import ContextTypes
 from bot.utils import load_constructores, save_constructores, send_to_topic, send_to_topic_html, fetch_data
 import logging
 
+from config import URL_DOMAIN
+
 logger = logging.getLogger(__name__)
 
 async def check_builders_notifications(context: ContextTypes.DEFAULT_TYPE):
     try:
-        respuesta = await fetch_data(f"https://friends-bot-ulum.onrender.com")
+        respuesta = await fetch_data(URL_DOMAIN)
         logger.info(respuesta)
         if respuesta:
             data = load_constructores()
