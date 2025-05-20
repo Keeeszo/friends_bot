@@ -36,6 +36,13 @@ def get_main_menu_keyboard():
 
 async def constructores_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Manejador principal para comandos de constructores"""
+    # Verificar si el comando se ejecuta en un chat directo
+    if update.effective_chat.type != "private":
+        await update.message.reply_text(
+            "Este comando solo está disponible por chat directo, escríbeme 😊"
+        )
+        return
+
     # Verificar si ya hay un menú activo
     if context.user_data.get('active_menu'):
         await update.message.reply_text(
