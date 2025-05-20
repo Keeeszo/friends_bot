@@ -4,6 +4,7 @@ from database import get_collection
 from pymongo.errors import PyMongoError
 import logging
 from config import MONGO_DB_BUILDERS_COLLECTION
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,9 @@ class BuildersDAO:
     ) -> bool:
         """Añade una nueva tarea de construcción"""
         try:
+            # Añadir ID único a la tarea
+            task_data["task_id"] = str(uuid.uuid4())
+            
             result = self.collection.update_one(
                 {"_id": user_id, f"data.accounts.{player_tag}": {"$exists": True}},
                 {"$push": {f"data.accounts.{player_tag}.active_builds": task_data}}
@@ -73,29 +77,19 @@ class BuildersDAO:
             self,
             user_id: str,
             player_tag: str,
-            task_index: int
+            task_id: str
     ) -> bool:
-        """Cancela una tarea de construcción"""
+        """Cancela una tarea de construcción usando su ID único"""
         try:
-            # Primero obtenemos el documento para validar
-            user_data = await self.get_user_builders(user_id)
-            if not user_data or player_tag not in user_data["accounts"]:
-                return False
-
-            # Eliminamos la tarea específica
             result = self.collection.update_one(
                 {"_id": user_id},
-                {"$unset": {f"data.accounts.{player_tag}.active_builds.{task_index}": ""}}
+                {"$pull": {
+                    f"data.accounts.{player_tag}.active_builds": {
+                        "task_id": task_id
+                    }
+                }}
             )
-
-            # Luego compactamos el array
-            if result.modified_count > 0:
-                self.collection.update_one(
-                    {"_id": user_id},
-                    {"$pull": {f"data.accounts.{player_tag}.active_builds": None}}
-                )
-                return True
-            return False
+            return result.modified_count > 0
         except PyMongoError as e:
             logger.error(f"Error cancelando tarea de construcción: {e}")
             return False
