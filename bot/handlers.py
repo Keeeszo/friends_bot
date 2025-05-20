@@ -1,11 +1,12 @@
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters, ConversationHandler
 from bot.commands import (
     clan as clan_commands,
     war as war_commands,
     builders as builders_commands,
     capital as capital_commands,
-    league as league_commands
+    league as league_commands,
+    villages as villages_commands
 )
 
 from bot.utils import send_to_topic
@@ -19,7 +20,9 @@ async def comandos(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ("/capital", "Progreso del fin de semana de ataque a la capital"),
         ("/liga", "Información de la liga de clanes actual"),
         ("/miembros", "Lista de miembros + Top 5 donadores del clan"),
-        ("/constructores", "Gestión de múltiples constructores para tu cuenta de Telegram")
+        ("/constructores", "Gestión de múltiples constructores para tu cuenta de Telegram"),
+        ("/aldeas", "Lista de aldeas recomendadas por el líder del clan"),
+        ("/agregarAldea", "Agregar una nueva aldea (solo líder del clan)")
     ]
 
     message = "📜 *COMANDOS DISPONIBLES*:\n\n" + "\n".join(
@@ -65,8 +68,32 @@ def register_handlers(application: Application):
         builders_commands.constructores_cancel,
         pattern="^cancel_build_"
     ))
+
+    # Comandos de aldeas
+    application.add_handler(CommandHandler("aldeas", villages_commands.aldeas))
     
-    # Manejador de mensajes de texto para constructores
+    # Conversación para agregar aldea
+    aldeas_conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("agregarAldea", villages_commands.agregar_aldea)],
+        states={
+            villages_commands.CHOOSING_TH: [
+                CallbackQueryHandler(villages_commands.th_selected, pattern="^th_")
+            ],
+            villages_commands.CHOOSING_TYPE: [
+                CallbackQueryHandler(villages_commands.type_selected, pattern="^type_")
+            ],
+            villages_commands.ENTERING_URL: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, villages_commands.url_received)
+            ],
+            villages_commands.ENTERING_DESCRIPTION: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, villages_commands.description_received)
+            ]
+        },
+        fallbacks=[CommandHandler("cancel", villages_commands.cancel)]
+    )
+    application.add_handler(aldeas_conv_handler)
+    
+    # Manejador de mensajes de texto para constructores (debe ir al final)
     application.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND,
         builders_commands.handle_text

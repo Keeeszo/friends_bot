@@ -8,6 +8,7 @@ load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 ALLOWED_GROUP_ID = int(os.getenv("ALLOWED_GROUP_ID"))
 ALERTAS_TOPIC_ID = int(os.getenv("ALERTAS_TOPIC_ID"))
+BOT_OWNER_USERNAME = os.getenv("BOT_OWNER_USERNAME")  # @ del dueño del bot
 
 # Clash of Clans
 COC_API_URL = "https://api.clashofclans.com/v1"
@@ -19,8 +20,10 @@ CLAN_TAG = os.getenv("CLAN_TAG").replace("#", "%23")
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 
+# MongoDB
 MONGO_DB_URI = os.getenv("MONGO_DB_URI")
 MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
 MONGO_DB_BUILDERS_COLLECTION = os.getenv("MONGO_DB_BUILDERS_COLLECTION")
+MONGO_DB_VILLAGES_COLLECTION = "villages"
 
 URL_DOMAIN = os.getenv("URL_DOMAIN")

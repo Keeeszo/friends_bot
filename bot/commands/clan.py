@@ -37,7 +37,7 @@ async def miembros(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )[:5]
 
     members_info = "\n".join(
-        f"{i + 1}. {m['name']} [ {m['tag']} ]"
+        f"{i + 1}. TH{m['townHallLevel']} {m['name']} [ {m['tag']} ]"
         for i, m in enumerate(members_data.get('items', []))
     )
 
