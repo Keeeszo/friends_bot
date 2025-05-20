@@ -781,6 +781,7 @@ async def constructores_cancel(update: Update, context: ContextTypes.DEFAULT_TYP
                     )
 
                     if success:
+                        # Actualizar el mensaje con la confirmación y el menú principal
                         await query.message.edit_text(
                             f"🗑️ *Construcción cancelada exitosamente*\n\n"
                             f"• 🔧 Cuenta: {account['name']}\n"
@@ -801,7 +802,10 @@ async def constructores_cancel(update: Update, context: ContextTypes.DEFAULT_TYP
                         reply_markup=get_main_menu_keyboard()
                     )
                 
+                # Limpiar el estado después de la cancelación
                 context.user_data.clear()
+                # Restaurar el estado del menú activo
+                context.user_data['active_menu'] = True
                 return
 
     except Exception as e:
@@ -816,4 +820,6 @@ async def constructores_cancel(update: Update, context: ContextTypes.DEFAULT_TYP
                 "⚠️ Error al cancelar la construcción",
                 reply_markup=get_main_menu_keyboard()
             )
+        # Limpiar el estado y restaurar el menú activo
         context.user_data.clear()
+        context.user_data['active_menu'] = True
